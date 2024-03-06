@@ -10,6 +10,11 @@ class Product extends Model
     use HasFactory;
 
     protected $guarded = [] ;
+    protected $attributes = [
+        'views' => 0,
+        'is_verified' => false,
+        'is_published' => false
+     ];
 
     public const PRICING_MODEL = [
         'Free',
