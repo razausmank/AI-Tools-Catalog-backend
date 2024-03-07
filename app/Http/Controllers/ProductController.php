@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bookmark;
 use App\Models\Product;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -67,5 +69,52 @@ class ProductController extends Controller
         ]);
 
         return $product;
+    }
+
+
+    public function delete(Product $product)
+    {
+        try {
+            $product->delete();
+        } catch (Exception $e) {
+            return [ "Something went wrong" , $e->getMessage()];
+        }
+
+        return "Product succesfull deleted" ;
+    }
+
+    public function bookmarkProduct( Product $product)
+    {
+        $bookmark = Bookmark::where('user_id', auth()->user()->id)->where('product_id', $product->id)->count();
+
+        if ( $bookmark  )
+        {
+            return "Bookmark already exists";
+        }
+
+        $newBookmark = Bookmark::create([
+            'user_id' => auth()->user()->id,
+            'product_id' => $product->id
+        ]);
+
+        return $newBookmark;
+    }
+
+    public function removeBookmarkOfProduct( Product $product )
+    {
+        $bookmark = Bookmark::where('user_id', auth()->user()->id)->where('product_id', $product->id)->first();
+
+        if ( !$bookmark )
+        {
+            return "Error! No Bookmark Found";
+        }
+
+        try {
+            $bookmark->delete();
+        } catch ( Exception $e ) {
+            return [ "Something went wrong" , $e->getMessage()];
+        }
+
+        return "Bookmark succesfully deleted" ;
     }
 }

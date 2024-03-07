@@ -36,5 +36,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/product/{product}/update', [ProductController::class, 'update']);
     Route::post('/product/{product}/publish', [ProductController::class, 'publish']);
     Route::post('/product/{product}/unpublish', [ProductController::class, 'unpublish']);
+    Route::post('/product/{product}/delete', [ProductController::class, 'delete']);
+
+
+    Route::post('/product/{product}/bookmark', [ProductController::class, 'bookmarkProduct']);
+    Route::post('/product/{product}/remove-bookmark', [ProductController::class, 'removeBookmarkOfProduct']);
 
 });
