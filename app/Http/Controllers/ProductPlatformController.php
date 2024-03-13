@@ -24,6 +24,11 @@ class ProductPlatformController extends Controller
         ]);
 
         // check if a platform exists for the same name and product
+        $platform = $product->platforms->where('name', $request->name)->first();
+        if ($platform)
+        {
+            return $platform;
+        }
 
         $productPlatform = ProductPlatform::create(
             $validated_attributes +

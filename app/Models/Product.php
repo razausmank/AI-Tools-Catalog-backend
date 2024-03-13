@@ -31,6 +31,6 @@ class Product extends Model
 
     public function platforms()
     {
-        return $this->hasMany(ProductPlatform::class, 'product_platforms', 'product_id', 'id');
+        return $this->hasMany(ProductPlatform::class,  'product_id', 'id');
     }
 }
