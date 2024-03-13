@@ -7,9 +7,32 @@ use App\Models\Product;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use PDOException;
 
 class ProductController extends Controller
 {
+    public function index(Request $request)
+    {
+        $products = Product::query();
+
+        try{
+
+            foreach ($request->query() as $param_key => $param_value) {
+                $products = $products->where($param_key, $param_value);
+            }
+
+            $products = $products->get();
+        } catch( PDOException $e)
+        {
+            return [ "The specified column does not exist in the table." , $e->getMessage()];
+        } catch( Exception $e)
+        {
+            return [ "Something went wrong" , $e->getMessage()];
+        }
+
+        return $products;
+    }
+
     public function store( Request $request )
     {
         $validated_fields = $request->validate([
@@ -18,11 +41,17 @@ class ProductController extends Controller
             'description' => ['string', 'required'],
             'pricing_model' => ['string', Rule::in( Product::PRICING_MODEL )],
             'url' => ['string', 'required'],
+            'categories_id' => 'sometimes|array',
+            'categories_id.*' => 'exists:categories,id',
         ]);
+
+        unset($validated_fields['categories_id']);
 
         $product = Product::create(
             $validated_fields
         );
+
+        $product->categories()->attach($request->categories_id);
 
         return $product;
     }
@@ -35,9 +64,17 @@ class ProductController extends Controller
             'description' => ['string', 'required'],
             'pricing_model' => ['string', Rule::in( Product::PRICING_MODEL )],
             'url' => ['string', 'required'],
+            'categories_id' => 'sometimes|array',
+            'categories_id.*' => 'exists:categories,id',
         ]);
 
+        unset($validated_fields['categories_id']);
+
         $product->update($validated_fields);
+
+        $product->categories()->detach();
+
+        $product->categories()->attach($request->categories_id);
 
         return $product;
     }
@@ -75,12 +112,13 @@ class ProductController extends Controller
     public function delete(Product $product)
     {
         try {
+            $product->categories()->detach();
             $product->delete();
         } catch (Exception $e) {
             return [ "Something went wrong" , $e->getMessage()];
         }
 
-        return "Product succesfull deleted" ;
+        return "Product succesfully deleted" ;
     }
 
     public function bookmarkProduct( Product $product)

@@ -23,4 +23,14 @@ class Product extends Model
         'Fremium',
         'Contact for Pricing'
     ];
+
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class, 'product_categories', 'product_id', 'category_id')->withTimestamps();
+    }
+
+    public function platforms()
+    {
+        return $this->hasMany(ProductPlatform::class, 'product_platforms', 'product_id', 'id');
+    }
 }
