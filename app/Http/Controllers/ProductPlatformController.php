@@ -27,7 +27,7 @@ class ProductPlatformController extends Controller
         $platform = $product->platforms->where('name', $request->name)->first();
         if ($platform)
         {
-            return $platform;
+            return ["a platform already exists for this product" , $platform];
         }
 
         $productPlatform = ProductPlatform::create(
@@ -41,14 +41,12 @@ class ProductPlatformController extends Controller
     public function update(Request $request, Product $product, ProductPlatform $platform)
     {
         $validated_attributes = $request->validate([
-            'name' => ['string', 'required', Rule::in( ProductPlatform::PLATFORM )],
             'url' => ['string'],
             'icon' => ['string']
         ]);
 
         $platform->update(
-            $validated_attributes +
-            ['product_id' => $product->id ]
+            $validated_attributes
         );
 
         return $platform;

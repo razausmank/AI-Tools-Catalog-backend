@@ -18,6 +18,11 @@ class ProductPlatform extends Model
         'Instagram'
     ];
 
+    protected $attributes = [
+        'url' => null,
+        'icon' => null,
+     ];
+
     public function product(){
         return $this->belongsTo(Product::class);
     }
