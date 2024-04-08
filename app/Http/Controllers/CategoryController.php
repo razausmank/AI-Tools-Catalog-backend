@@ -41,7 +41,7 @@ class CategoryController extends Controller
     public function update( Request $request, Category $category )
     {
         $validated_fields = $request->validate([
-            'name' => 'required|unique:categories,name'
+            'name' => 'required|unique:categories,name,'.$category->id
         ]);
 
         $category->update($validated_fields);
