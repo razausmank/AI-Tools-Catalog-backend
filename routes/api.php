@@ -46,13 +46,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/product/{product}/remove-bookmark', [ProductController::class, 'removeBookmarkOfProduct']);
 
 
-    Route::get('/category', [CategoryController::class, 'index']);
-    Route::post('/category', [CategoryController::class, 'store']);
-    Route::post('/category/{category}/update', [CategoryController::class, 'update']);
-    Route::post('/category/{category}/delete', [CategoryController::class, 'delete']);
 
-    Route::get('/platform-names', [ProductPlatformController::class, 'platformNames']);
-    Route::post('/product/{product}/platform', [ProductPlatformController::class, 'store']);
-    Route::post('/product/{product}/platform/{platform}/update', [ProductPlatformController::class, 'update']);
-    Route::post('/product/{product}/platform/{platform}/delete', [ProductPlatformController::class, 'delete']);
+
 });

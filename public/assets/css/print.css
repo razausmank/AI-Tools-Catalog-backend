@@ -1,0 +1,7 @@
+
+  body.receipt .sheet { width: 80mm; height: 100mm } /* change height as you like */
+  @media print { body.receipt { width: 80mm } }
+
+  body{
+    overflow: visible;
+  }

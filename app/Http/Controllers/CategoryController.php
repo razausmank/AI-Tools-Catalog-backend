@@ -13,7 +13,12 @@ class CategoryController extends Controller
     {
         $categories = Category::all();
 
-        return $categories;
+        return view('categories.index', compact('categories'));
+    }
+
+    public function create()
+    {
+        return view('categories.create');
     }
 
     public function store( Request $request )
@@ -24,7 +29,13 @@ class CategoryController extends Controller
 
         $category = Category::create($validated_fields);
 
-        return $category;
+        return redirect(route('category.index'))->with('success', 'Product Category successfuly created');
+    }
+
+
+    public function edit(Category $category)
+    {
+        return view('categories.edit', compact('category'));
     }
 
     public function update( Request $request, Category $category )
@@ -35,16 +46,16 @@ class CategoryController extends Controller
 
         $category->update($validated_fields);
 
-        return $category;
+        return redirect(route('category.index'))->with('success', 'Product Category successfuly updated');
     }
 
-    public function delete( Category $category )
+    public function destroy( Category $category )
     {
         // Category can only be deleted if there is no product associated with it
         try {
             if ( $category->products()->count())
             {
-                return "Category is attached to products and hence cannot be deleted" ;
+                return redirect(route('category.index'))->with('failure', "Category is attached to products and hence cannot be deleted");
             }
 
             $category->delete();
@@ -53,6 +64,7 @@ class CategoryController extends Controller
             return [ "Something went wrong" , $e->getMessage()];
         }
 
-        return "Category succesfully deleted" ;
+        return redirect(route('category.index'))->with('success', 'Product Category successfuly deleted');
+
     }
 }

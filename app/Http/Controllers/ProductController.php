@@ -2,16 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ProductRequest;
 use App\Models\Bookmark;
+use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductPlatform;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use PDOException;
 
 class ProductController extends Controller
 {
-    public function index(Request $request)
+
+
+    public function index()
+    {
+        $products = Product::all();
+
+        return view('products.index', compact('products'));
+    }
+
+    public function filter_function(Request $request) // not being used atm
     {
         $products = Product::query();
 
@@ -33,42 +46,80 @@ class ProductController extends Controller
         return $products;
     }
 
-    public function store( Request $request )
+    public function create()
     {
-        $validated_fields = $request->validate([
-            'name' => ['string', 'required'],
-            'short_description' => ['string', 'required'],
-            'description' => ['string', 'required'],
-            'pricing_model' => ['string', Rule::in( Product::PRICING_MODEL )],
-            'url' => ['string', 'required'],
-            'categories_id' => 'sometimes|array',
-            'categories_id.*' => 'exists:categories,id',
-        ]);
-
-        unset($validated_fields['categories_id']);
-
-        $product = Product::create(
-            $validated_fields
-        );
-
-        $product->categories()->attach($request->categories_id);
-
-        return $product;
+        $pricing_models = Product::PRICING_MODEL ;
+        $categories = Category::all();
+        $socialMediaPlatforms = ProductPlatform::PLATFORM;
+        return view('products.create', compact('pricing_models', 'categories', 'socialMediaPlatforms'));
     }
 
-    public function update( Request $request , Product $product)
+    public function store( ProductRequest $request )
     {
-        $validated_fields = $request->validate([
-            'name' => ['string', 'required'],
-            'short_description' => ['string', 'required'],
-            'description' => ['string', 'required'],
-            'pricing_model' => ['string', Rule::in( Product::PRICING_MODEL )],
-            'url' => ['string', 'required'],
-            'categories_id' => 'sometimes|array',
-            'categories_id.*' => 'exists:categories,id',
-        ]);
 
-        unset($validated_fields['categories_id']);
+        $validated_fields = $request->all() ;
+
+        if ($request->file('image')) {
+            $image_address = $request->file('image')->store('public/products');
+            $validated_fields['image'] = $image_address;
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $product = Product::create(
+                $validated_fields
+            );
+
+            $product->categories()->attach($request->categories_id);
+
+            foreach ( $request->platform as $platform_key => $platform_url)
+            {
+                if ($platform_url)
+                {
+                    ProductPlatform::create([
+                        'name' => ucfirst(str_replace('_url', '', $platform_key)),
+                        'url' => $platform_url,
+                        'product_id' => $product->id
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return redirect(route('product.index'))->with('success', 'Product successfuly created');
+
+        } catch (Exception $e) {
+
+            DB::rollBack();
+
+            return $e->getMessage();
+            return response(view('error', [
+                'response_code' => 'Uh Oh',
+                'response_text' => 'ERROR',
+                'response_message' => 'Something went wrong'
+            ]), 401);
+
+        }
+    }
+
+    public function edit(Product $product)
+    {
+        $pricing_models = Product::PRICING_MODEL ;
+        $categories = Category::all();
+        $socialMediaPlatforms = ProductPlatform::PLATFORM;
+
+        return view('products.edit', compact('product', 'pricing_models', 'categories', 'socialMediaPlatforms'));
+    }
+
+    public function update( ProductRequest $request , Product $product)
+    {
+        $validated_fields = $request->all() ;
+
+        if ($request->file('image')) {
+            $image_address = $request->file('image')->store('public/products');
+            $validated_fields['image'] = $image_address;
+        }
 
         $product->update($validated_fields);
 
@@ -76,7 +127,17 @@ class ProductController extends Controller
 
         $product->categories()->attach($request->categories_id);
 
-        return $product;
+        foreach ( $request->platform as $platform_key => $platform_url)
+        {
+                ProductPlatform::updateOrCreate([
+                    'product_id' => $product->id,
+                    'name' => ucfirst(str_replace('_url', '', $platform_key)),],
+                [
+                    'url' => $platform_url,
+                ]);
+        }
+
+        return redirect(route('product.index'))->with('success', 'Product successfuly updated');
     }
 
 
@@ -84,32 +145,33 @@ class ProductController extends Controller
     {
         if ( $product->is_published )
         {
-            return 'The Product is already published';
+            return redirect(route('product.index'))->with('failure', 'The Product is already published');
         }
 
         $product->update([
             'is_published' => true
         ]);
 
-        return $product;
+        return redirect(route('product.index'))->with('success', 'Product successfuly published');
     }
 
     public function unpublish( Request $request , Product $product)
     {
         if ( !$product->is_published )
         {
-            return 'The Product is already Unpublished';
+            return redirect(route('product.index'))->with('failure', 'The Product is already Unpublished');
         }
 
         $product->update([
             'is_published' => false
         ]);
 
-        return $product;
+        return redirect(route('product.index'))->with('success', 'Product successfuly unpublished');
+
     }
 
 
-    public function delete(Product $product)
+    public function destroy(Product $product)
     {
         try {
             $product->categories()->detach();
@@ -118,7 +180,7 @@ class ProductController extends Controller
             return [ "Something went wrong" , $e->getMessage()];
         }
 
-        return "Product succesfully deleted" ;
+        return redirect(route('product.index'))->with('success', 'Product successfuly deleted');
     }
 
     public function bookmarkProduct( Product $product)
