@@ -88,7 +88,7 @@
 
             });
 
-            $('.product_publish_unpublish_form').on('submit', function(e) {
+            $('.deal_publish_unpublish_form').on('submit', function(e) {
                 e.preventDefault();
 
                 var form = this;

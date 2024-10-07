@@ -2,9 +2,9 @@
     :breadcrumbs="[ 'Products' => 'product.index', 'New Product' => 'product.create'  ]">
 
     <x-cards.basic-card title="New Product">
-        @if($errors->any())
+        {{-- @if($errors->any())
             {!! implode('', $errors->all('<div>:message</div>')) !!}
-        @endif
+        @endif --}}
         <x-form.form>
             <x-slot name="form_tag">
                 <form action="{{ route('product.store') }}" method="POST" enctype="multipart/form-data"
